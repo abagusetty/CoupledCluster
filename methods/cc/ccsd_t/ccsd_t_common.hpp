@@ -5,7 +5,7 @@
 #include <string>
 
 #if defined(USE_CUDA) || defined(USE_HIP) || defined(USE_DPCPP)
-#include "tamm/gpu_memory_pool.hpp"
+#include "tamm/rmm_memory_pool.hpp"
 using tamm::gpuEvent_t;
 using tamm::gpuStream_t;
 #endif

@@ -303,15 +303,14 @@ void ccsd_t2_cs(Scheduler& sch, const TiledIndexSpace& MO, const TiledIndexSpace
     SizeVec cdims_sz;
     for(const auto v: cdims) { cdims_sz.push_back(v); }
 
-    
     AddBuf<TensorElType1, TensorElType2, TensorElType3>* ab{nullptr};
 #if defined(USE_CUDA) || defined(USE_HIP) || defined(USE_DPCPP)
     TensorElType2* th_a{nullptr};
     TensorElType3* th_b{nullptr};
     auto&          thandle = GPUStreamPool::getInstance().getStream();
 
-    ab = new AddBuf<TensorElType1, TensorElType2, TensorElType3>{
-      th_a, th_b, {}, translated_cblockid};
+    ab =
+      new AddBuf<TensorElType1, TensorElType2, TensorElType3>{th_a, th_b, {}, translated_cblockid};
 #else
     ab = new AddBuf<TensorElType1, TensorElType2, TensorElType3>{ctensor, {}, translated_cblockid};
 #endif
@@ -327,12 +326,15 @@ void ccsd_t2_cs(Scheduler& sch, const TiledIndexSpace& MO, const TiledIndexSpace
     auto& memDevicePool = tamm::RMMMemoryManager::getInstance().getDeviceMemoryPool();
 
     if(hw == ExecutionHW::GPU) {
-      cbuf_dev_ptr = static_cast<TensorElType1*>(memDevicePool.allocate(csize * sizeof(TensorElType1)));
+      cbuf_dev_ptr =
+        static_cast<TensorElType1*>(memDevicePool.allocate(csize * sizeof(TensorElType1)));
       cbuf_tmp_dev_ptr =
         static_cast<TensorElType1*>(memDevicePool.allocate(csize * sizeof(TensorElType1)));
 
-      gpuMemsetAsync(reinterpret_cast<void*&>(cbuf_dev_ptr), csize * sizeof(TensorElType1), thandle);
-      gpuMemsetAsync(reinterpret_cast<void*&>(cbuf_tmp_dev_ptr), csize * sizeof(TensorElType1), thandle);
+      gpuMemsetAsync(reinterpret_cast<void*&>(cbuf_dev_ptr), csize * sizeof(TensorElType1),
+                     thandle);
+      gpuMemsetAsync(reinterpret_cast<void*&>(cbuf_tmp_dev_ptr), csize * sizeof(TensorElType1),
+                     thandle);
     }
 #endif
 
@@ -369,7 +371,6 @@ void ccsd_t2_cs(Scheduler& sch, const TiledIndexSpace& MO, const TiledIndexSpace
       const size_t asize = atensor.block_size(translated_ablockid);
       const size_t bsize = btensor.block_size(translated_bblockid);
 
-
       TensorElType2* abuf{nullptr};
       TensorElType3* bbuf{nullptr};
       abuf = static_cast<TensorElType2*>(memHostPool.allocate(asize * sizeof(TensorElType2)));
@@ -405,14 +406,13 @@ void ccsd_t2_cs(Scheduler& sch, const TiledIndexSpace& MO, const TiledIndexSpace
         }
 #endif
 
-        //std::cout << "x. compute_v4_terms \n";
+        // std::cout << "x. compute_v4_terms \n";
         kernels::block_multiply<T, TensorElType1, TensorElType2, TensorElType3>(
 #if defined(USE_CUDA) || defined(USE_HIP) || defined(USE_DPCPP)
           abuf_dev, bbuf_dev, thandle,
 #endif
-          1.0, abuf, adims_sz, rhs1_int_labels_, bbuf, bdims_sz, rhs2_int_labels_,
-          cscale, cbuf.data(), cdims_sz, lhs_int_labels_, hw, false, cbuf_dev_ptr,
-          cbuf_tmp_dev_ptr);
+          1.0, abuf, adims_sz, rhs1_int_labels_, bbuf, bdims_sz, rhs2_int_labels_, cscale,
+          cbuf.data(), cdims_sz, lhs_int_labels_, hw, false, cbuf_dev_ptr, cbuf_tmp_dev_ptr);
 
 #if(defined(USE_CUDA) || defined(USE_HIP) || defined(USE_DPCPP))
         if(hw == ExecutionHW::GPU) {
@@ -449,7 +449,6 @@ void ccsd_t2_cs(Scheduler& sch, const TiledIndexSpace& MO, const TiledIndexSpace
       // ctensor.add(translated_cblockid, cbuf);
       // for (size_t i=0;i<csize;i++) dbuf[i] = cbuf[i];
     }
-
   };
 
   a22_abab = Tensor<T>{{v_alpha, v_beta, v_alpha, v_beta}, compute_v4_term};

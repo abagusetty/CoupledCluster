@@ -404,12 +404,12 @@ void ccsd_t2_os(Scheduler& sch, const TiledIndexSpace& MO, const TiledIndexSpace
     TensorElType3* th_b{nullptr};
     auto&          thandle = GPUStreamPool::getInstance().getStream();
 
-    ab = new AddBuf<TensorElType1, TensorElType2, TensorElType3>{
-      th_a, th_b, {}, translated_cblockid};
+    ab =
+      new AddBuf<TensorElType1, TensorElType2, TensorElType3>{th_a, th_b, {}, translated_cblockid};
 #else
     ab = new AddBuf<TensorElType1, TensorElType2, TensorElType3>{ctensor, {}, translated_cblockid};
 #endif
-    add_bufs.push_back(ab);    
+    add_bufs.push_back(ab);
 
     // LabelLoopNest inner_loop{reduction_lbls};
     LabelLoopNest inner_loop{reduction_labels};
@@ -419,7 +419,6 @@ void ccsd_t2_os(Scheduler& sch, const TiledIndexSpace& MO, const TiledIndexSpace
     TensorElType1* cbuf_dev_ptr{nullptr};
     TensorElType1* cbuf_tmp_dev_ptr{nullptr};
     auto&          memHostPool = tamm::RMMMemoryManager::getInstance().getHostMemoryPool();
-
 
 #if(defined(USE_CUDA) || defined(USE_HIP) || defined(USE_DPCPP))
     auto& memDevicePool = tamm::RMMMemoryManager::getInstance().getDeviceMemoryPool();
@@ -435,7 +434,7 @@ void ccsd_t2_os(Scheduler& sch, const TiledIndexSpace& MO, const TiledIndexSpace
       gpuMemsetAsync(reinterpret_cast<void*&>(cbuf_tmp_dev_ptr), csize * sizeof(TensorElType1),
                      thandle);
     }
-#endif    
+#endif
 
     int slc = 0;
     for(const auto& inner_it_val: inner_loop) { // k
@@ -546,7 +545,7 @@ void ccsd_t2_os(Scheduler& sch, const TiledIndexSpace& MO, const TiledIndexSpace
         memDevicePool.deallocate(static_cast<void*>(cbuf_tmp_dev_ptr),
                                  csize * sizeof(TensorElType1));
       }
-#endif      
+#endif
       // ctensor.add(translated_cblockid, cbuf);
       // for (size_t i=0;i<csize;i++) dbuf[i] = cbuf[i];
     }

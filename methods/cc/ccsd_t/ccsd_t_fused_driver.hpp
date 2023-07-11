@@ -403,7 +403,7 @@ HIP_SAFE(hipDeviceSynchronize());
   freeGpuMem(df_dev_d1_v2_all);
   freeGpuMem(df_dev_d2_t2_all);
   freeGpuMem(df_dev_d2_v2_all);
-  
+
   freeGpuMem(df_dev_energies);
 #endif
 

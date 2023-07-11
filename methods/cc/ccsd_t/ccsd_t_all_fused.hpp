@@ -117,7 +117,7 @@ void ccsd_t_fully_fused_none_df_none_task(
   T* dev_evl_sorted_h3b = static_cast<T*>(getGpuMem(sizeof(T) * base_size_h3b));
   T* dev_evl_sorted_p4b = static_cast<T*>(getGpuMem(sizeof(T) * base_size_p4b));
   T* dev_evl_sorted_p5b = static_cast<T*>(getGpuMem(sizeof(T) * base_size_p5b));
-  T* dev_evl_sorted_p6b = static_cast<T*>(getGpuMem(sizeof(T) * base_size_p6b));  
+  T* dev_evl_sorted_p6b = static_cast<T*>(getGpuMem(sizeof(T) * base_size_p6b));
 #endif
 
   // resets
@@ -160,34 +160,33 @@ void ccsd_t_fully_fused_none_df_none_task(
 
 #if defined(USE_CUDA) || defined(USE_HIP) || defined(USE_DPCPP)
   // this is not pinned memory.
-  gpuMemcpyAsync<T>(dev_evl_sorted_h1b, host_evl_sorted_h1b, base_size_h1b,
-                    gpuMemcpyHostToDevice, stream);
-  gpuMemcpyAsync<T>(dev_evl_sorted_h2b, host_evl_sorted_h2b, base_size_h2b,
-                    gpuMemcpyHostToDevice, stream);
-  gpuMemcpyAsync<T>(dev_evl_sorted_h3b, host_evl_sorted_h3b, base_size_h3b,
-                    gpuMemcpyHostToDevice, stream);
-  gpuMemcpyAsync<T>(dev_evl_sorted_p4b, host_evl_sorted_p4b, base_size_p4b,
-                    gpuMemcpyHostToDevice, stream);
-  gpuMemcpyAsync<T>(dev_evl_sorted_p5b, host_evl_sorted_p5b, base_size_p5b,
-                    gpuMemcpyHostToDevice, stream);
-  gpuMemcpyAsync<T>(dev_evl_sorted_p6b, host_evl_sorted_p6b, base_size_p6b,
-                    gpuMemcpyHostToDevice, stream);
+  gpuMemcpyAsync<T>(dev_evl_sorted_h1b, host_evl_sorted_h1b, base_size_h1b, gpuMemcpyHostToDevice,
+                    stream);
+  gpuMemcpyAsync<T>(dev_evl_sorted_h2b, host_evl_sorted_h2b, base_size_h2b, gpuMemcpyHostToDevice,
+                    stream);
+  gpuMemcpyAsync<T>(dev_evl_sorted_h3b, host_evl_sorted_h3b, base_size_h3b, gpuMemcpyHostToDevice,
+                    stream);
+  gpuMemcpyAsync<T>(dev_evl_sorted_p4b, host_evl_sorted_p4b, base_size_p4b, gpuMemcpyHostToDevice,
+                    stream);
+  gpuMemcpyAsync<T>(dev_evl_sorted_p5b, host_evl_sorted_p5b, base_size_p5b, gpuMemcpyHostToDevice,
+                    stream);
+  gpuMemcpyAsync<T>(dev_evl_sorted_p6b, host_evl_sorted_p6b, base_size_p6b, gpuMemcpyHostToDevice,
+                    stream);
 
   //  new tensors
-  gpuMemcpyAsync<T>(df_dev_s1_t1_all, df_host_pinned_s1_t1,
-                    (max_dim_s1_t1 * df_num_s1_enabled), gpuMemcpyHostToDevice, stream);
-  gpuMemcpyAsync<T>(df_dev_s1_v2_all, df_host_pinned_s1_v2,
-                    (max_dim_s1_v2 * df_num_s1_enabled), gpuMemcpyHostToDevice, stream);
-  gpuMemcpyAsync<T>(df_dev_d1_t2_all, df_host_pinned_d1_t2,
-                    (max_dim_d1_t2 * df_num_d1_enabled), gpuMemcpyHostToDevice, stream);
-  gpuMemcpyAsync<T>(df_dev_d1_v2_all, df_host_pinned_d1_v2,
-                    (max_dim_d1_v2 * df_num_d1_enabled), gpuMemcpyHostToDevice, stream);
-  gpuMemcpyAsync<T>(df_dev_d2_t2_all, df_host_pinned_d2_t2,
-                    (max_dim_d2_t2 * df_num_d2_enabled), gpuMemcpyHostToDevice, stream);
-  gpuMemcpyAsync<T>(df_dev_d2_v2_all, df_host_pinned_d2_v2,
-                    (max_dim_d2_v2 * df_num_d2_enabled), gpuMemcpyHostToDevice, stream);
+  gpuMemcpyAsync<T>(df_dev_s1_t1_all, df_host_pinned_s1_t1, (max_dim_s1_t1 * df_num_s1_enabled),
+                    gpuMemcpyHostToDevice, stream);
+  gpuMemcpyAsync<T>(df_dev_s1_v2_all, df_host_pinned_s1_v2, (max_dim_s1_v2 * df_num_s1_enabled),
+                    gpuMemcpyHostToDevice, stream);
+  gpuMemcpyAsync<T>(df_dev_d1_t2_all, df_host_pinned_d1_t2, (max_dim_d1_t2 * df_num_d1_enabled),
+                    gpuMemcpyHostToDevice, stream);
+  gpuMemcpyAsync<T>(df_dev_d1_v2_all, df_host_pinned_d1_v2, (max_dim_d1_v2 * df_num_d1_enabled),
+                    gpuMemcpyHostToDevice, stream);
+  gpuMemcpyAsync<T>(df_dev_d2_t2_all, df_host_pinned_d2_t2, (max_dim_d2_t2 * df_num_d2_enabled),
+                    gpuMemcpyHostToDevice, stream);
+  gpuMemcpyAsync<T>(df_dev_d2_v2_all, df_host_pinned_d2_v2, (max_dim_d2_v2 * df_num_d2_enabled),
+                    gpuMemcpyHostToDevice, stream);
 #endif
-  
 
   size_t num_blocks = CEIL(base_size_h3b, 4) * CEIL(base_size_h2b, 4) * CEIL(base_size_h1b, 4) *
                       CEIL(base_size_p6b, 4) * CEIL(base_size_p5b, 4) * CEIL(base_size_p4b, 4);
@@ -237,10 +236,9 @@ void ccsd_t_fully_fused_none_df_none_task(
 #endif
 
 #if defined(USE_CUDA) || defined(USE_HIP) || defined(USE_DPCPP)
-  gpuMemcpyAsync<T>(host_energies, dev_energies, num_blocks * 2,
-                    gpuMemcpyDeviceToHost, stream);
+  gpuMemcpyAsync<T>(host_energies, dev_energies, num_blocks * 2, gpuMemcpyDeviceToHost, stream);
   gpuStreamSynchronize(stream);
-  
+
   T final_energy_1 = 0.0;
   T final_energy_2 = 0.0;
   for(size_t i = 0; i < num_blocks; i++) {
@@ -257,7 +255,6 @@ void ccsd_t_fully_fused_none_df_none_task(
   freeGpuMem(dev_evl_sorted_h3b);
   freeGpuMem(dev_evl_sorted_p4b);
   freeGpuMem(dev_evl_sorted_p5b);
-  freeGpuMem(dev_evl_sorted_p6b);  
+  freeGpuMem(dev_evl_sorted_p6b);
 #endif
-
 }

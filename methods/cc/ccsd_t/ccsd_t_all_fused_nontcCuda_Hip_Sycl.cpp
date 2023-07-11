@@ -2789,26 +2789,26 @@ void fully_fused_ccsd_t_gpu(gpuStream_t& stream_id, size_t num_blocks, size_t ba
                             T* partial_energies) {
 #ifdef USE_CUDA
   cudaMemcpyToSymbolAsync(const_df_s1_size, host_s1_size, sizeof(int) * (6), 0,
-                          cudaMemcpyHostToDevice, stream_id);
+                          cudaMemcpyHostToDevice, stream_id.first);
   cudaMemcpyToSymbolAsync(const_df_s1_exec, host_s1_exec, sizeof(int) * (9), 0,
-                          cudaMemcpyHostToDevice, stream_id);
+                          cudaMemcpyHostToDevice, stream_id.first);
 
   cudaMemcpyToSymbolAsync(const_df_d1_size, host_d1_size, sizeof(int) * (7 * size_noab), 0,
-                          cudaMemcpyHostToDevice, stream_id);
+                          cudaMemcpyHostToDevice, stream_id.first);
   cudaMemcpyToSymbolAsync(const_df_d1_exec, host_d1_exec, sizeof(int) * (9 * size_noab), 0,
-                          cudaMemcpyHostToDevice, stream_id);
+                          cudaMemcpyHostToDevice, stream_id.first);
 
   cudaMemcpyToSymbolAsync(const_df_d2_size, host_d2_size, sizeof(int) * (7 * size_nvab), 0,
-                          cudaMemcpyHostToDevice, stream_id);
+                          cudaMemcpyHostToDevice, stream_id.first);
   cudaMemcpyToSymbolAsync(const_df_d2_exec, host_d2_exec, sizeof(int) * (9 * size_nvab), 0,
-                          cudaMemcpyHostToDevice, stream_id);
+                          cudaMemcpyHostToDevice, stream_id.first);
 
   //    Depends on # of Fused Kernel
   dim3 gridsize_1(num_blocks);
   dim3 blocksize_1(FUSION_SIZE_TB_1_X, FUSION_SIZE_TB_1_Y);
 
   //    to call the fused kernel for singles, doubles and energies.
-  revised_jk_ccsd_t_fully_fused_kernel<T><<<gridsize_1, blocksize_1, 0, stream_id>>>(
+  revised_jk_ccsd_t_fully_fused_kernel<T><<<gridsize_1, blocksize_1, 0, stream_id.first>>>(
     (int) size_noab, (int) size_nvab,
     //
     (int) size_max_dim_s1_t1, (int) size_max_dim_s1_v2, (int) size_max_dim_d1_t2,
@@ -2831,21 +2831,21 @@ void fully_fused_ccsd_t_gpu(gpuStream_t& stream_id, size_t num_blocks, size_t ba
 
 #elif defined(USE_HIP)
   HIP_SAFE(hipMemcpyToSymbolAsync(HIP_SYMBOL(const_df_s1_size), host_s1_size, sizeof(int) * (6), 0,
-                                  hipMemcpyHostToDevice, stream_id));
+                                  hipMemcpyHostToDevice, stream_id.first));
   HIP_SAFE(hipMemcpyToSymbolAsync(HIP_SYMBOL(const_df_s1_exec), host_s1_exec, sizeof(int) * (9), 0,
-                                  hipMemcpyHostToDevice, stream_id));
+                                  hipMemcpyHostToDevice, stream_id.first));
   HIP_SAFE(hipMemcpyToSymbolAsync(HIP_SYMBOL(const_df_d1_size), host_d1_size,
                                   sizeof(int) * (7 * size_noab), 0, hipMemcpyHostToDevice,
-                                  stream_id));
+                                  stream_id.first));
   HIP_SAFE(hipMemcpyToSymbolAsync(HIP_SYMBOL(const_df_d1_exec), host_d1_exec,
                                   sizeof(int) * (9 * size_noab), 0, hipMemcpyHostToDevice,
-                                  stream_id));
+                                  stream_id.first));
   HIP_SAFE(hipMemcpyToSymbolAsync(HIP_SYMBOL(const_df_d2_size), host_d2_size,
                                   sizeof(int) * (7 * size_nvab), 0, hipMemcpyHostToDevice,
-                                  stream_id));
+                                  stream_id.first));
   HIP_SAFE(hipMemcpyToSymbolAsync(HIP_SYMBOL(const_df_d2_exec), host_d2_exec,
                                   sizeof(int) * (9 * size_nvab), 0, hipMemcpyHostToDevice,
-                                  stream_id));
+                                  stream_id.first));
 
   //    Depends on # of Fused Kernel
   dim3 gridsize_1(num_blocks);
@@ -2854,7 +2854,7 @@ void fully_fused_ccsd_t_gpu(gpuStream_t& stream_id, size_t num_blocks, size_t ba
   //    to call the fused kernel for singles, doubles and energies.
   hipLaunchKernelGGL(
     HIP_KERNEL_NAME(revised_jk_ccsd_t_fully_fused_kernel<T>), dim3(gridsize_1), dim3(blocksize_1),
-    0, stream_id, (int) size_noab, (int) size_nvab,
+    0, stream_id.first, (int) size_noab, (int) size_nvab,
     //
     (int) size_max_dim_s1_t1, (int) size_max_dim_s1_v2, (int) size_max_dim_d1_t2,
     (int) size_max_dim_d1_v2, (int) size_max_dim_d2_t2, (int) size_max_dim_d2_v2,
@@ -2878,7 +2878,7 @@ void fully_fused_ccsd_t_gpu(gpuStream_t& stream_id, size_t num_blocks, size_t ba
   sycl::range<2> blocksize(FUSION_SIZE_TB_1_Y, FUSION_SIZE_TB_1_X);
   auto           global_range = gridsize * blocksize;
 
-  stream_id.parallel_for<class ccsd_t_syclkernel>(
+  stream_id.first.parallel_for<class ccsd_t_syclkernel>(
     sycl::nd_range<2>(global_range, blocksize), [=](auto item) [[sycl::reqd_sub_group_size(16)]] {
       revised_jk_ccsd_t_fully_fused_kernel(
         size_noab, size_nvab, size_max_dim_s1_t1, size_max_dim_s1_v2, size_max_dim_d1_t2,

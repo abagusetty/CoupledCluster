@@ -121,7 +121,7 @@ void* getGpuMem(size_t bytes) {
     }
   }
 
-  ptr                = moreDeviceMem(bytes);
+  ptr = moreDeviceMem(bytes);
   live_ptrs_gpu[ptr] = bytes;
 #endif // NO_OPT
 
@@ -174,7 +174,7 @@ void* getHostMem(size_t bytes) {
     }
   }
 
-  ptr                 = moreHostMem(bytes);
+  ptr = moreHostMem(bytes);
   live_ptrs_host[ptr] = bytes;
 #endif // NO_OPT
   return ptr;

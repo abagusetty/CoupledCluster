@@ -2865,19 +2865,20 @@ void fully_fused_ccsd_t_gpu(gpuStream_t& stream_id, size_t num_blocks, size_t ba
   sycl::range<2> blocksize(FUSION_SIZE_TB_1_Y, FUSION_SIZE_TB_1_X);
   auto           global_range = gridsize * blocksize;
 
-  stream_id.first.parallel_for<class ccsd_t_syclkernel>(sycl::nd_range<2>(global_range, blocksize), [=](auto item) {
-    revised_jk_ccsd_t_fully_fused_kernel(
-      size_noab, size_nvab, size_max_dim_s1_t1, size_max_dim_s1_v2, size_max_dim_d1_t2,
-      size_max_dim_d1_v2, size_max_dim_d2_t2, size_max_dim_d2_v2, df_dev_d1_t2_all,
-      df_dev_d1_v2_all, df_dev_d2_t2_all, df_dev_d2_v2_all, df_dev_s1_t1_all, df_dev_s1_v2_all,
-      dev_evl_sorted_h1b, dev_evl_sorted_h2b, dev_evl_sorted_h3b, dev_evl_sorted_p4b,
-      dev_evl_sorted_p5b, dev_evl_sorted_p6b, partial_energies,
-      CEIL(base_size_h3b, FUSION_SIZE_SLICE_1_H3), CEIL(base_size_h2b, FUSION_SIZE_SLICE_1_H2),
-      CEIL(base_size_h1b, FUSION_SIZE_SLICE_1_H1), CEIL(base_size_p6b, FUSION_SIZE_SLICE_1_P6),
-      CEIL(base_size_p5b, FUSION_SIZE_SLICE_1_P5), CEIL(base_size_p4b, FUSION_SIZE_SLICE_1_P4),
-      base_size_h1b, base_size_h2b, base_size_h3b, base_size_p4b, base_size_p5b, base_size_p6b,
-      item, host_s1_size, host_s1_exec, host_d1_size, host_d1_exec, host_d2_size, host_d2_exec);
-  });
+  stream_id.first.parallel_for<class ccsd_t_syclkernel>(
+    sycl::nd_range<2>(global_range, blocksize), [=](auto item) {
+      revised_jk_ccsd_t_fully_fused_kernel(
+        size_noab, size_nvab, size_max_dim_s1_t1, size_max_dim_s1_v2, size_max_dim_d1_t2,
+        size_max_dim_d1_v2, size_max_dim_d2_t2, size_max_dim_d2_v2, df_dev_d1_t2_all,
+        df_dev_d1_v2_all, df_dev_d2_t2_all, df_dev_d2_v2_all, df_dev_s1_t1_all, df_dev_s1_v2_all,
+        dev_evl_sorted_h1b, dev_evl_sorted_h2b, dev_evl_sorted_h3b, dev_evl_sorted_p4b,
+        dev_evl_sorted_p5b, dev_evl_sorted_p6b, partial_energies,
+        CEIL(base_size_h3b, FUSION_SIZE_SLICE_1_H3), CEIL(base_size_h2b, FUSION_SIZE_SLICE_1_H2),
+        CEIL(base_size_h1b, FUSION_SIZE_SLICE_1_H1), CEIL(base_size_p6b, FUSION_SIZE_SLICE_1_P6),
+        CEIL(base_size_p5b, FUSION_SIZE_SLICE_1_P5), CEIL(base_size_p4b, FUSION_SIZE_SLICE_1_P4),
+        base_size_h1b, base_size_h2b, base_size_h3b, base_size_p4b, base_size_p5b, base_size_p6b,
+        item, host_s1_size, host_s1_exec, host_d1_size, host_d1_exec, host_d2_size, host_d2_exec);
+    });
 #endif
 }
 

@@ -106,7 +106,7 @@ void ccsd_t_fully_fused_none_df_none_task(
   // get (round-robin) GPU stream from pool
   gpuStream_t& stream = tamm::GPUStreamPool::getInstance().getStream();
   // get GPU memory handle from pool
-  auto& memPool = tamm::GPUPooledStorageManager::getInstance();
+  auto& memPool = tamm::RMMMemoryManager::getInstance().getDeviceMemoryPool();
 #endif
 
   // Index p4b,p5b,p6b,h1b,h2b,h3b;
@@ -271,7 +271,7 @@ void ccsd_t_fully_fused_none_df_none_task(
   HIP_SAFE(hipLaunchHostFunc(stream, hostEnergyReduce, reduceData));
   HIP_SAFE(hipEventRecord(*done_compute, stream));
 #elif defined(USE_DPCPP)
-  (*done_compute) = stream.submit([&](sycl::handler& cgh) {
+  (*done_compute) = stream.first.submit([&](sycl::handler& cgh) {
     cgh.host_task([=]() {
       hostEnergyReduceData_t* data_t        = (hostEnergyReduceData_t*) reduceData;
       const size_t            num_blocks    = data_t->num_blocks;

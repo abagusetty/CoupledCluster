@@ -273,21 +273,7 @@ void ccsd_t_fully_fused_none_df_none_task(
 #elif defined(USE_DPCPP)
   (*done_compute) = stream.first.submit([&](sycl::handler& cgh) {
     cgh.host_task([=]() {
-      hostEnergyReduceData_t* data_t        = (hostEnergyReduceData_t*) reduceData;
-      const size_t            num_blocks    = data_t->num_blocks;
-      double*                 host_energies = data_t->host_energies;
-      double*                 res           = data_t->result_energy;
-      double                  factor        = data_t->factor;
-
-      double final_energy_1 = 0.0;
-      double final_energy_2 = 0.0;
-      for(size_t i = 0; i < num_blocks; i++) {
-        final_energy_1 += host_energies[i];
-        final_energy_2 += host_energies[i + num_blocks];
-      }
-
-      res[0] += final_energy_1 * factor;
-      res[1] += final_energy_2 * factor;
+      hostEnergyReduce(reduceData);
     });
   });
 #endif

@@ -271,11 +271,8 @@ void ccsd_t_fully_fused_none_df_none_task(
   HIP_SAFE(hipLaunchHostFunc(stream, hostEnergyReduce, reduceData));
   HIP_SAFE(hipEventRecord(*done_compute, stream));
 #elif defined(USE_DPCPP)
-  (*done_compute) = stream.first.submit([&](sycl::handler& cgh) {
-    cgh.host_task([=]() {
-      hostEnergyReduce(reduceData);
-    });
-  });
+  (*done_compute) = stream.first.submit(
+    [&](sycl::handler& cgh) { cgh.host_task([=]() { hostEnergyReduce(reduceData); }); });
 #endif
 
   //  free device mem back to pool

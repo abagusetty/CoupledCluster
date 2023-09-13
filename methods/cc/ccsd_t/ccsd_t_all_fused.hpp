@@ -265,11 +265,11 @@ void ccsd_t_fully_fused_none_df_none_task(
   reduceData->factor        = factor;
 
 #ifdef USE_CUDA
-  CUDA_SAFE(cudaLaunchHostFunc(stream, hostEnergyReduce, reduceData));
-  CUDA_SAFE(cudaEventRecord(*done_compute, stream));
+  CUDA_SAFE(cudaLaunchHostFunc(stream.first, hostEnergyReduce, reduceData));
+  CUDA_SAFE(cudaEventRecord(*done_compute, stream.first));
 #elif defined(USE_HIP)
-  HIP_SAFE(hipLaunchHostFunc(stream, hostEnergyReduce, reduceData));
-  HIP_SAFE(hipEventRecord(*done_compute, stream));
+  HIP_SAFE(hipLaunchHostFunc(stream.first, hostEnergyReduce, reduceData));
+  HIP_SAFE(hipEventRecord(*done_compute, stream.first));
 #elif defined(USE_DPCPP)
   (*done_compute) = stream.first.submit(
     [&](sycl::handler& cgh) { cgh.host_task([=]() { hostEnergyReduce(reduceData); }); });

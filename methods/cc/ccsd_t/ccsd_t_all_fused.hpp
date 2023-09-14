@@ -22,8 +22,6 @@ void hostEnergyReduce(void* data) {
   data_t->result_energy[1] += final_energy_2 * data_t->factor;
 }
 
-
-
 // driver for the fully-fused kernel (FP64)
 template<typename T>
 void fully_fused_ccsd_t_gpu(gpuStream_t& stream_id, size_t num_blocks, size_t base_size_h1b,
@@ -264,15 +262,15 @@ void ccsd_t_fully_fused_none_df_none_task(
   reduceData->factor        = factor;
 
 #ifdef USE_CUDA
-  CUDA_SAFE(cudaLaunchHostFunc(stream.first, hostEnergyReduce, (void *)reduceData));
+  CUDA_SAFE(cudaLaunchHostFunc(stream.first, hostEnergyReduce, (void*) reduceData));
   CUDA_SAFE(cudaEventRecord(*done_compute, stream.first));
 #elif defined(USE_HIP)
-  HIP_SAFE(hipLaunchHostFunc(stream.first, hostEnergyReduce, (void *)reduceData));
+  HIP_SAFE(hipLaunchHostFunc(stream.first, hostEnergyReduce, (void*) reduceData));
   HIP_SAFE(hipEventRecord(*done_compute, stream.first));
 #elif defined(USE_DPCPP)
   // TODO: the sync might not be needed (stream.first.ext_oneapi_submit_barrier)
-  auto host_task_event = stream.first.submit([&](sycl::handler& cgh) {
-      cgh.host_task([=]() { hostEnergyReduce(reduceData); }); });
+  auto host_task_event = stream.first.submit(
+    [&](sycl::handler& cgh) { cgh.host_task([=]() { hostEnergyReduce(reduceData); }); });
   (*done_compute) = stream.first.ext_oneapi_submit_barrier({host_task_event});
 #endif
 

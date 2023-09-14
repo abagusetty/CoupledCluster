@@ -9,21 +9,20 @@ void dev_mem_d(size_t, size_t, size_t, size_t, size_t, size_t);
 
 void hostEnergyReduce(void* data) {
   hostEnergyReduceData_t* data_t        = (hostEnergyReduceData_t*) data;
-  const size_t            num_blocks    = data_t->num_blocks;
   double*                 host_energies = data_t->host_energies;
-  double*                 res           = data_t->result_energy;
-  double                  factor        = data_t->factor;
 
   double final_energy_1 = 0.0;
   double final_energy_2 = 0.0;
-  for(size_t i = 0; i < num_blocks; i++) {
+  for(size_t i = 0; i < data_t->num_blocks; i++) {
     final_energy_1 += host_energies[i];
-    final_energy_2 += host_energies[i + num_blocks];
+    final_energy_2 += host_energies[i + data_t->num_blocks];
   }
 
-  res[0] += final_energy_1 * factor;
-  res[1] += final_energy_2 * factor;
+  data_t->result_energy[0] += final_energy_1 * data_t->factor;
+  data_t->result_energy[1] += final_energy_2 * data_t->factor;
 }
+
+
 
 // driver for the fully-fused kernel (FP64)
 template<typename T>
@@ -104,7 +103,7 @@ void ccsd_t_fully_fused_none_df_none_task(
   gpuEvent_t* done_compute, gpuEvent_t* done_copy) {
 #if defined(USE_CUDA) || defined(USE_HIP) || defined(USE_DPCPP)
   // get (round-robin) GPU stream from pool
-  gpuStream_t& stream = tamm::GPUStreamPool::getInstance().getStream();
+  gpuStream_t& stream = tamm::GPUStreamPool::getInstance().getRRStream();
   // get GPU memory handle from pool
   auto& memPool = tamm::RMMMemoryManager::getInstance().getDeviceMemoryPool();
 #endif
@@ -265,17 +264,19 @@ void ccsd_t_fully_fused_none_df_none_task(
   reduceData->factor        = factor;
 
 #ifdef USE_CUDA
-  CUDA_SAFE(cudaLaunchHostFunc(stream.first, hostEnergyReduce, reduceData));
+  CUDA_SAFE(cudaLaunchHostFunc(stream.first, hostEnergyReduce, (void *)reduceData));
   CUDA_SAFE(cudaEventRecord(*done_compute, stream.first));
 #elif defined(USE_HIP)
-  HIP_SAFE(hipLaunchHostFunc(stream.first, hostEnergyReduce, reduceData));
+  HIP_SAFE(hipLaunchHostFunc(stream.first, hostEnergyReduce, (void *)reduceData));
   HIP_SAFE(hipEventRecord(*done_compute, stream.first));
 #elif defined(USE_DPCPP)
-  (*done_compute) = stream.first.submit(
-    [&](sycl::handler& cgh) { cgh.host_task([=]() { hostEnergyReduce(reduceData); }); });
+  // TODO: the sync might not be needed (stream.first.ext_oneapi_submit_barrier)
+  auto host_task_event = stream.first.submit([&](sycl::handler& cgh) {
+      cgh.host_task([=]() { hostEnergyReduce(reduceData); }); });
+  (*done_compute) = stream.first.ext_oneapi_submit_barrier({host_task_event});
 #endif
 
-  //  free device mem back to pool
+  // free device mem back to pool
   memPool.deallocate(static_cast<void*>(dev_evl_sorted_h1b), sizeof(T) * base_size_h1b);
   memPool.deallocate(static_cast<void*>(dev_evl_sorted_h2b), sizeof(T) * base_size_h2b);
   memPool.deallocate(static_cast<void*>(dev_evl_sorted_h3b), sizeof(T) * base_size_h3b);
